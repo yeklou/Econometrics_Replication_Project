@@ -1,0 +1,390 @@
+----------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\eklou\OneDrive\Documents\statawork/Replication_Project_Part3
+> .log
+  log type:  text
+ opened on:  23 Apr 2023, 23:46:25
+
+. 
+. *Open paces_vouchers dataset
+. use "statawork/paces_vouchers.dta", clear
+
+. 
+. *Look at data
+. codebook, compact
+
+Variable     Obs Unique      Mean  Min  Max  Label
+----------------------------------------------------------------------------------
+vouch0      4044      2  .5880317    0    1  Won Voucher
+sex_name    4044      2  .4866469    0    1  Male Name
+match_i     4044      2   .310089    0    1  ID Match
+match_ic    4044      2  .2964886    0    1  ID & City Match
+match_i7    4044      2  .2903066    0    1  ID & 7-letter Match
+age         3664     13  12.70497    7   82  
+phone       4044      2  .8815529    0    1  Has Phone
+checkid     4044      2  .8758655    0    1  Has Valid Id
+math        4043     42  12.88619    0   62  Math Score on ICFES
+read        4043     40  14.32501    0   64  Language Score on ICFES
+match_ic7   4044      2  .2789318    0    1  ID & 7-letter & City Match
+readcens1   4043     38  36.64606   32   64  Read score censored at 1st percentile
+readcens10  4043     33  42.32291   40   64  Read score censored at 10th percen...
+mathcens1   4043     36  35.20031   32   62  Math score censored at 1st percentile
+mathcens10  4043     33  37.31162   35   62  Math score censored at 10th percen...
+----------------------------------------------------------------------------------
+
+. 
+. *Put list of variables to get descriptives for in local macro to use later *(Col
+> umn1)
+. local descrip_vars "checkid read math"
+
+. 
+. *Means and SD for All Applicants
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25 & math > 0 & read > 0, 
+> statistics(mean sd n) columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0      1224
+        read |  47.35569  5.588405      1223
+        math |  42.53791  4.882338      1223
+--------------------------------------------
+
+. 
+. *Means and SD for Female
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25 & math > 0 & read > 0 &
+>  sex_name ==0, statistics(mean sd n) columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0       673
+        read |  47.01856  5.657523       672
+        math |  42.34419  4.809131       672
+--------------------------------------------
+
+. 
+. *Means and SD for Male
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25 & math > 0 & read > 0 &
+>  sex_name ==1, statistics(mean sd n) columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0       551
+        read |  47.76686  5.480011       551
+        math |  42.77418  4.964309       551
+--------------------------------------------
+
+. 
+. *(Column2)
+. local descrip_vars "checkid readcens1 mathcens1"
+
+. 
+. *Means and SD for All Applicants
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25, statistics(mean sd n) 
+> columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0      3542
+   readcens1 |  37.30472  8.005851      3541
+   mathcens1 |  35.65401  5.761416      3541
+--------------------------------------------
+
+. 
+. *Means and SD for Female
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25 & sex_name ==0, statist
+> ics(mean sd n) columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0      1789
+   readcens1 |  37.64568  8.058866      1788
+   mathcens1 |  35.89837   5.80365      1788
+--------------------------------------------
+
+. 
+. *Means and SD for Male
+. tabstat `descrip_vars' if checkid ==1 & age>=9 & age<=25 & sex_name ==1, statist
+> ics(mean sd n) columns(statistics) save
+
+    Variable |      Mean        SD         N
+-------------+------------------------------
+     checkid |         1         0      1753
+   readcens1 |  36.95695  7.938633      1753
+   mathcens1 |  35.40478  5.708903      1753
+--------------------------------------------
+
+. 
+. * Voucher effect on Language score(Column 1)
+. 
+. *for full sample 
+. regress read vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & read > 0, r
+> obust
+
+Linear regression                               Number of obs     =      1,223
+                                                F(3, 1219)        =      11.86
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0273
+                                                Root MSE          =     5.5183
+
+------------------------------------------------------------------------------
+             |               Robust
+        read | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .6966198     .32695     2.13   0.033     .0551726    1.338067
+         age |  -.9938222   .1936929    -5.13   0.000    -1.373831   -.6138138
+    sex_name |   .7329941   .3162269     2.32   0.021     .1125846    1.353403
+       _cons |   58.39871   2.322935    25.14   0.000     53.84132    62.95611
+------------------------------------------------------------------------------
+
+. 
+. *For Female
+. regress read vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & read > 0 & 
+> sex_name ==0, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =        672
+                                                F(2, 669)         =      10.89
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0294
+                                                Root MSE          =     5.5821
+
+------------------------------------------------------------------------------
+             |               Robust
+        read | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .7389539   .4460245     1.66   0.098    -.1368225     1.61473
+         age |  -1.139384   .2589979    -4.40   0.000    -1.647931   -.6308374
+    sex_name |          0  (omitted)
+       _cons |   60.10266   3.100039    19.39   0.000     54.01568    66.18964
+------------------------------------------------------------------------------
+
+. 
+. *for Male
+. regress read vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & read > 0 & 
+> sex_name ==1, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =        551
+                                                F(2, 548)         =       4.68
+                                                Prob > F          =     0.0096
+                                                R-squared         =     0.0160
+                                                Root MSE          =     5.4459
+
+------------------------------------------------------------------------------
+             |               Robust
+        read | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .6587898   .4804317     1.37   0.171    -.2849233    1.602503
+         age |  -.8010578   .2905729    -2.76   0.006    -1.371831   -.2302848
+    sex_name |          0  (omitted)
+       _cons |   56.86361   3.483334    16.32   0.000     50.02129    63.70593
+------------------------------------------------------------------------------
+
+. 
+. * Voucher effect on Language score(Column 2)
+. 
+. *for full sample 
+. regress readcens1 vouch0 age sex_name if checkid ==1 & age>=9 & age<=25, robust
+
+Linear regression                               Number of obs     =      3,541
+                                                F(3, 3537)        =     352.40
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1812
+                                                Root MSE          =     7.2474
+
+------------------------------------------------------------------------------
+             |               Robust
+   readcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   1.141487   .2432113     4.69   0.000     .6646387    1.618336
+         age |  -2.568828   .0805174   -31.90   0.000    -2.726693   -2.410963
+    sex_name |  -.4372062   .2440037    -1.79   0.073    -.9156084    .0411959
+       _cons |   69.39921   1.106974    62.69   0.000     67.22884    71.56958
+------------------------------------------------------------------------------
+
+. 
+. *For Female
+. regress readcens1 vouch0 age sex_name  if checkid ==1 & age>=9 & age<=25 & sex_n
+> ame ==0, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =      1,788
+                                                F(2, 1785)        =     283.14
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1846
+                                                Root MSE          =     7.2813
+
+------------------------------------------------------------------------------
+             |               Robust
+   readcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   1.037038   .3447123     3.01   0.003     .3609556     1.71312
+         age |  -2.650756   .1123405   -23.60   0.000    -2.871088   -2.430423
+    sex_name |          0  (omitted)
+       _cons |   70.49354   1.538901    45.81   0.000      67.4753    73.51178
+------------------------------------------------------------------------------
+
+. 
+. *for Male
+. regress readcens1 vouch0 age sex_name  if checkid ==1 & age>=9 & age<=25 & sex_n
+> ame ==1, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =      1,753
+                                                F(2, 1750)        =     238.93
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1750
+                                                Root MSE          =     7.2148
+
+------------------------------------------------------------------------------
+             |               Robust
+   readcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |    1.25157   .3431284     3.65   0.000     .5785856    1.924555
+         age |  -2.486726   .1153339   -21.56   0.000    -2.712933    -2.26052
+    sex_name |          0  (omitted)
+       _cons |   67.85248    1.59579    42.52   0.000     64.72262    70.98234
+------------------------------------------------------------------------------
+
+. 
+. 
+. * Voucher effect on Math score(Column 1)
+. 
+. *for full sample 
+. regress math vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & math > 0, r
+> obust
+
+Linear regression                               Number of obs     =      1,225
+                                                F(3, 1221)        =       3.10
+                                                Prob > F          =     0.0259
+                                                R-squared         =     0.0069
+                                                Root MSE          =     4.8727
+
+------------------------------------------------------------------------------
+             |               Robust
+        math | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .4010514    .286498     1.40   0.162    -.1610315    .9631342
+         age |  -.3663175   .1689258    -2.17   0.030    -.6977345   -.0349005
+    sex_name |   .4254384   .2809056     1.51   0.130    -.1256727    .9765495
+       _cons |   46.43803   2.035402    22.82   0.000     42.44475     50.4313
+------------------------------------------------------------------------------
+
+. 
+. *For Female
+. regress math vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & math > 0 & 
+> sex_name ==0, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =        673
+                                                F(2, 670)         =       2.60
+                                                Prob > F          =     0.0747
+                                                R-squared         =     0.0071
+                                                Root MSE          =      4.804
+
+------------------------------------------------------------------------------
+             |               Robust
+        math | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .1780362   .3775724     0.47   0.637    -.5633313    .9194038
+         age |  -.4961056   .2215427    -2.24   0.025    -.9311072    -.061104
+    sex_name |          0  (omitted)
+       _cons |   48.11967   2.656805    18.11   0.000     42.90301    53.33634
+------------------------------------------------------------------------------
+
+. 
+. *for Male
+. regress math vouch0 age sex_name if checkid ==1 & age>=9 & age<=25 & math > 0 & 
+> sex_name ==1, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =        552
+                                                F(2, 549)         =       1.59
+                                                Prob > F          =     0.2040
+                                                R-squared         =     0.0053
+                                                Root MSE          =      4.957
+
+------------------------------------------------------------------------------
+             |               Robust
+        math | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .6983312   .4400868     1.59   0.113    -.1661288    1.562791
+         age |  -.1836105    .262233    -0.70   0.484    -.6987132    .3314923
+    sex_name |          0  (omitted)
+       _cons |   44.49522   3.167856    14.05   0.000     38.27262    50.71783
+------------------------------------------------------------------------------
+
+. 
+. * Voucher effect on Math score(Column 2)
+. 
+. *for full sample 
+. regress mathcens1 vouch0 age sex_name if checkid ==1 & age>=9 & age<=25, robust
+
+Linear regression                               Number of obs     =      3,541
+                                                F(3, 3537)        =     302.82
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1585
+                                                Root MSE          =     5.2874
+
+------------------------------------------------------------------------------
+             |               Robust
+   mathcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .7853916   .1772925     4.43   0.000     .4377856    1.132998
+         age |  -1.726416   .0585345   -29.49   0.000     -1.84118   -1.611651
+    sex_name |  -.3247732    .177978    -1.82   0.068    -.6737231    .0241767
+       _cons |    57.2282   .8054473    71.05   0.000     55.64901    58.80739
+------------------------------------------------------------------------------
+
+. 
+. *For Female
+. regress mathcens1 vouch0 age sex_name  if checkid ==1 & age>=9 & age<=25 & sex_n
+> ame ==0, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =      1,788
+                                                F(2, 1785)        =     240.43
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1614
+                                                Root MSE          =     5.3178
+
+------------------------------------------------------------------------------
+             |               Robust
+   mathcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .6237525   .2519631     2.48   0.013     .1295788    1.117926
+         age |  -1.789642    .082474   -21.70   0.000    -1.951398   -1.627886
+    sex_name |          0  (omitted)
+       _cons |   58.11968   1.131379    51.37   0.000     55.90071    60.33864
+------------------------------------------------------------------------------
+
+. 
+. *for Male
+. regress mathcens1 vouch0 age sex_name  if checkid ==1 & age>=9 & age<=25 & sex_n
+> ame ==1, robust
+note: sex_name omitted because of collinearity.
+
+Linear regression                               Number of obs     =      1,753
+                                                F(2, 1750)        =     207.19
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1531
+                                                Root MSE          =     5.2567
+
+------------------------------------------------------------------------------
+             |               Robust
+   mathcens1 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      vouch0 |   .9537131    .249263     3.83   0.000     .4648285    1.442598
+         age |  -1.662645   .0830223   -20.03   0.000    -1.825478   -1.499812
+    sex_name |          0  (omitted)
+       _cons |   55.99268    1.14782    48.78   0.000     53.74144    58.24393
+------------------------------------------------------------------------------
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\eklou\OneDrive\Documents\statawork/Replication_Project_Part3
+> .log
+  log type:  text
+ closed on:  23 Apr 2023, 23:46:26
+----------------------------------------------------------------------------------
